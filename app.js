@@ -20,6 +20,7 @@ app.use(express.static(`${__dirname}/public`, { index: ['overview.html']}));
  * things.
  */
 app.use((req, res, next) => {
+  // eslint-disable-next-line no-console
   console.log('Hello from the middleware - 😎');
   req.requestTime = new Date().toISOString();
   next();
