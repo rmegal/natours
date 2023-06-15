@@ -1,32 +1,36 @@
-const express = require('express');
-const morgan = require('morgan');
+const express = require("express");
+const morgan = require("morgan");
 
-const tourRouter = require('./routes/tourRoutes');
-const userRouter = require('./routes/userRoutes');
+const tourRouter = require("./routes/tourRoutes");
+const userRouter = require("./routes/userRoutes");
 
 const app = express();
 
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
 }
 
 app.use(express.json());
-app.use(express.static(`${__dirname}/public`, { index: ['overview.html']}));
+app.use(express.static(`${__dirname}/public`, { index: ["overview.html"] }));
 
 /**
  * My own middleware function.
- * 
- * Note: Be sure to call next unless you want to short-circuit
- * things.
+ *
+ * Note: Be sure to call next!
  */
 app.use((req, res, next) => {
-  // eslint-disable-next-line no-console
-  console.log('Hello from the middleware - 😎');
   req.requestTime = new Date().toISOString();
   next();
 });
 
-app.use('/api/v1/tours', tourRouter);
-app.use('/api/v1/users', userRouter);
+app.use("/api/v1/tours", tourRouter);
+app.use("/api/v1/users", userRouter);
+
+app.all("*", (req, res, next) => {
+  res.status(404).json({
+    status: "fail",
+    message: `Can't find ${req.originalUrl}`
+  });
+});
 
 module.exports = app;
