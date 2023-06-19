@@ -50,6 +50,9 @@ const handleValidationFailedDB = (err) => {
   return new AppError(message, 400);
 };
 
+const handleJsonWebTokenError = () =>
+  new AppError("You are not logged in. Please login.", 401);
+
 module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode ? err.statusCode : 500;
   err.status = err.status ? err.status : "error";
@@ -77,6 +80,13 @@ module.exports = (err, req, res, next) => {
       error._message.match(/.*validation failed.*/)
     ) {
       error = handleValidationFailedDB(error);
+    }
+
+    if (
+      error.name === "JsonWebTokenError" ||
+      error.name === "TokenExpiredError"
+    ) {
+      error = handleJsonWebTokenError();
     }
 
     sendErrorProd(error, req, res);
