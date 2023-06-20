@@ -58,7 +58,7 @@ userSchema.pre("save", async function (next) {
   /**
    * Only run if password was modified.
    */
-  if (!this.isModified("password")) {
+  if (!this.isModified("password") || !this.isNew) {
     return next();
   }
 
@@ -68,8 +68,12 @@ userSchema.pre("save", async function (next) {
   this.password = await bcrypt.hash(this.password, 12);
   // ditch the passworConfirm
   this.passwordConfirm = undefined;
-  // set passwordChangedAt
-  this.passwordChangedAt = new Date(Date.now());
+  /**
+   * set passwordChangedAt - subtract 1 second to ensure the
+   * JWT is newer than this timestamp.
+   */
+  
+  this.passwordChangedAt = new Date(Date.now() - 1000);
 
   next();
 });
@@ -101,8 +105,6 @@ userSchema.methods.generatePasswordResetToken = function () {
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
-
-  console.log({resetToken}, this.passwordResetToken);
 
   // Add 10 minutes to current time
   this.passwordResetExpires = Date.now() + (10 * 60 * 1000);
